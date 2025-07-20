@@ -48,22 +48,6 @@ This query filters for logon failures within a 5-hour window, groups them by rem
 
 ---
 
-### 🕎️ Scheduled Analytics Rule Configuration
-
-| **Field**         | **Value**                             |
-| ----------------- | ------------------------------------- |
-| Rule Name         | Brute Force Detection – Failed Logins |
-| Rule Type         | Scheduled query                       |
-| Frequency         | Every 5 hours                         |
-| Lookup Period     | Last 5 hours                          |
-| Trigger Threshold | Number of results >= 10               |
-| Severity          | Medium                                |
-| MITRE Tactic      | Credential Access                     |
-| MITRE Technique   | T1110 – Brute Force                   |
-| Entity Mappings   | DeviceName, RemoteIP, AccountName     |
-
----
-
 ### 🔍 Brute Force Activity Observed
 
 | **Remote IP**    | **Failed Attempts**                          | **Target Machine(s)**                     |
@@ -130,19 +114,21 @@ DeviceLogonEvents
 
 1. Go to Sentinel → Workspace → Configuration → Analytics → ➕ Create → **Scheduled query rule**
 
-### Rule Details
+### 🕎️ Scheduled Analytics Rule Configuration
 
-| Field         | Example Value                           |
-| ------------- | --------------------------------------- |
-| Name          | 🔥 Brute Force Attack Detection 🔐      |
-| Description   | Detects excessive failed sign-ins       |
-| Rule Type     | Scheduled                               |
-| Frequency     | Every 5 minutes                         |
-| Lookup Period | Last 1 hour                             |
-| Severity      | 🔴 High                                 |
-| Tactics       | 🎯 Initial Access, 🔑 Credential Access |
+| **Field**         | **Value**                             |
+| ----------------- | ------------------------------------- |
+| Rule Name         | Brute Force Detection – Failed Logins |
+| Rule Type         | Scheduled query                       |
+| Frequency         | Every 5 hours                         |
+| Lookup Period     | Last 5 hours                          |
+| Trigger Threshold | Number of results >= 10               |
+| Severity          | Medium                                |
+| MITRE Tactic      | Credential Access                     |
+| MITRE Technique   | T1110 – Brute Force                   |
+| Entity Mappings   | DeviceName, RemoteIP, AccountName     |
 
-![Screenshot 2025-01-14 103734](https://github.com/user-attachments/assets/f6558c4d-585b-4e63-b787-1cc071cc0ad0)
+![Screenshot 2025-01-14 103734](https://github.com/user-attachments/assets/629b4b34-dc6f-4268-a799-e4d3fcb16cd1)
 
 ### Detection Query
 
