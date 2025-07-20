@@ -64,7 +64,7 @@ This query filters for logon failures (`ActionType == "LogonFailed"`) within a 5
 ### 📈 Log Query Validation in Log Analytics
 The query was validated in Log Analytics to confirm accurate detection patterns before rule deployment.
 
-<img src="images/LogValidation.png" alt="Analytics Rule Settings" style="width:80%;">
+<img width="790" height="812" alt="image" src="https://github.com/user-attachments/assets/741713f3-e1f0-47d3-8e80-a63cf5c489cd" />
 
 <br>
 
