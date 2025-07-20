@@ -1,3 +1,6 @@
+
+
+
 # 🔐 Brute Force Detection with Microsoft Sentinel
 
 This lab demonstrates the implementation of a brute force detection capability in Microsoft Sentinel, aligned with the incident response lifecycle as defined in NIST Special Publication 800-61 Revision 2: *Computer Security Incident Handling Guide*. The activity focuses on the detection and initial response phases, simulating a scenario in which an adversary attempts unauthorized access via repeated failed logon attempts from a single remote IP address.
@@ -46,6 +49,11 @@ DeviceLogonEvents
 
 This query filters for logon failures (`ActionType == "LogonFailed"`) within a 5-hour window. It then groups the results by `DeviceName` and `RemoteIP`, counting the number of failures. If 10 or more failures are observed from a single remote IP to a single host, this suggests potential brute force behavior.
 
+
+![Screenshot 2025-01-13 182228](https://github.com/user-attachments/assets/741713f3-e1f0-47d3-8e80-a63cf5c489cd)
+
+
+
 ### 🛎️ Scheduled Analytics Rule Configuration
 
 | **Field**             | **Value**                              |
@@ -61,99 +69,170 @@ This query filters for logon failures (`ActionType == "LogonFailed"`) within a 5
 | Entity Mappings       | `DeviceName`, `RemoteIP`, `AccountName` | 
 <br>
 
-### 📈 Log Query Validation in Log Analytics
-The query was validated in Log Analytics to confirm accurate detection patterns before rule deployment.
+---
 
-<img width="790" height="812" alt="image" src="https://github.com/user-attachments/assets/741713f3-e1f0-47d3-8e80-a63cf5c489cd" />
+- **Three Azure VMs** were targeted by brute force attempts from **three public IPs**:
+  
+  | **Remote IP**       | **Failed Attempts** | **Target Machine**    |
+  |---------------------|---------------------|-----------------------|
+  | `87.120.127.241`    | 116                 | `linux-agent-scan-sam`    |
+  | `194.0.234.44`     | 100                 | `bennyvirtual`    |
+  | `10.0.0.8`    | 22, 20                 | `windows-server,ryan-final-lab `     |
 
-<br>
+![Screenshot 2025-01-06 181511](https://github.com/user-attachments/assets/3134d542-b44d-4036-b2ce-1827bc7dda88)
 
-### 📈 Create New Scheduled Rule - Sentinel Analytics 
-Created a new scheduled analytics rule in Microsoft Sentinel for brute force detection based on the above Log Analytics rule.
+- KQL Query to detect failed logins:  
+  ```kql
+  DeviceLogonEvents
+  | where RemoteIP in ("87.120.127.241", "194.0.234.44", "10.0.0.8" )
+  | where ActionType != "LogonFailed"
+  ```
 
-![Query Results Visualization](images/NSGrule5.png)
+  **Result:** No successful logins from these IPs were detected.
+
+#### Analysis Steps:
+1. **Review Patterns:**
+   - Investigated failed login thresholds in Azure AD logs.
+   - Identified off-hours timing and suspicious IP geolocations.
+
+2. **Document Findings:**
+   - Retained logs detailing the frequency, origin, and targets of failed attempts.
+
+3. **Prioritize:**
+   - **High Priority:** Privileged accounts targeted during off-hours.
+   - **Low Priority:** Isolated, user-specific failed attempts.
 
 ---
 
-### 🔎 Alert Triage
+### 3️⃣ Containment
+#### Immediate Actions:
+1. **Device Isolation:**
+   - Isolated affected devices using **Microsoft Defender for Endpoint**.
 
-RULE TRIGGERED - Once the rule is triggered, an incident is automatically created in Microsoft Sentinel. This serves as the point of handoff from detection to incident response.
-- Incident Automatically Created
-- Incident assigned to self
-- Status Active
-- Invesitage designation started
+2. **Network Security Group (NSG) Update:**
+   - Restricted RDP access to authorized IPs only.
+   - Blocked all external IPs linked to failed login attempts.
 
-### Incident Generation
-
-An alert is fired when matching events are found, leading to the generation of a Sentinel incident that includes contextual information such as host, IP address, and account name.
-
-![Alert Rule Incident](images/AlertRuleIncident1.png)
-
-
-### Visualization of Entities Involved
-Based on the triggered Incident, these are the virtual addresses and malicious remote ID addresses involved.
-
-![Query Results Visualization](images/Visualization2.png)
-
-
-### 🧩 Entity Context
-
-Incident details provide visibility into:
-- Three affected endpoints detected (misawa, tom-th-lab-01, vm2-hv)
-- There were four potentially malicious IPs detected (60.249.78.94, 37.48.249.144, 92.53.90.243, 81.215.213.170)
-<br>
-
-![Affected Host](images/AffectedHost3.png)  
-
-## 3. 🚨 Containment, Eradication, and Recovery (NIST IR Step 3)
-<br>
-For this incident I performed the following isolation and eradication steps:
- - Isolated devices in MDE on all affected VMs in the network
- - Performed Anti-Malware scan on affected devices via MDE
- - Search logs to ensure no successful login were made by malicious brute force attempts.
+3. **Anti-Malware Scans:**
+   - Performed scans on affected devices for potential compromise.
 
 ---
 
-### Check for Successful Logons from Suspected Malicious Remote IPs <br>
+### 4️⃣ Eradication & Recovery
+1. **Password Reset:**
+   - Reset passwords for targeted accounts.
+   - Enforced strong password policies for privileged accounts.
 
-<img src="images/NoSuccessfulLogons.png" alt="Analytics Rule Settings" style="width:80%;">
+2. **MFA Enforcement:**
+   - Enabled multi-factor authentication for all high-value accounts.
 
-This confirmed that none of the brute force attempts achieved any logon status other than "LogonFailed". As a result no systems required wiping or recovery procedures. 
-
----
-
-## 4. 📋 Post-Incident Activity (NIST IR Step 4)
-
-### Commenting and Documentation
-
-Following containment and eradication, all incident lifecycle findings were documented in the Incident report in Sentinel. Response actions and outcome were also fully documented. 
-
-![Activity Comment](images/ActivityComment6.png)
-
-### 🗃️ Closing the Incident
-
-Once fully investigated, the incident categorized as TRUE POSITIVE and was closed with a detailed INCIDENT ACTIVITY LOG in Sentinel, marking the completion of the investigation lifecycle.
-
-![Close Incident](images/closed7.png)
-
-### 📋 After Action Report and Recommendations
-
-After recovery from the event, a post-incident analysis recommended the following changes and updates to prevent similar incidents from occurring in the future:
-- NSG (Network Security Group) was locked down to prevent RDP attempts from the public internet.
-- Create NSG rule for inbound security rule to allow only remote user's unique remote IP for each VM assigned to user. 
-- Policy was proposed to require this on all of the network's VM.
+3. **Geo-blocking:**
+   - Blocked login attempts from high-risk geolocations.
 
 ---
 
-## 📌 Summary
+### 5️⃣ Post-Incident Activity
+1. **Lessons Learned:**
+   - Was detection quick and effective?
+   - Were privileged accounts adequately protected?
 
-This lab demonstrated how to:
+2. **System Improvements:**
+   - Adjusted login thresholds for quicker detection.
+   - Expanded employee training on password security.
 
-- Prepare a cloud-native SIEM environment for incident detection.
-- Implement a KQL-based brute force detection query.
-- Automate alerting through Microsoft Sentinel scheduled rules.
-- Analyze and respond to incidents in alignment with the NIST IR lifecycle.
+3. **Documentation:**
+   - Recorded all findings, actions taken, and future recommendations.
+---
 
-This workflow supports the development of an efficient and repeatable detection and response capability, applicable to enterprise-level incident response programs.
+### **Step 1: Create-Alert-Rule** 
+how to create a alert rule in Microsoft Sentinel , go to Microsoft Sentinel, click on your group, click on configuration, click on Analytics, click create with the + beside it , click scheduled query rule
+After clicking **"Scheduled query rule"**, you’ll see the **Analytics rule details** tab. Fill in the following fields:
 
-> 🔁 Return to [Main Repository README](../README.md) to explore additional incident response labs.
+1. **Name**:  
+   - Enter a name for your rule, e.g., **"🔥 Brute Force Attack Detection 🔐"**.
+
+2. **Description**:  
+   - Add a brief description of what the rule does, e.g.,  
+     *"🔍 This rule detects potential brute-force login attempts based on failed sign-ins exceeding a defined threshold."*
+
+3. **Severity**:  
+   - Choose a severity level:
+     - **Low** 🟢
+     - **Medium** 🟡
+     - **High** 🔴 (Recommended for brute force detection)
+
+4. **Tactics**:  
+   - Select the **MITRE ATT&CK Tactics** related to brute force:
+     - **🎯 Initial Access**
+     - **🔑 Credential Access**
+      
+![Screenshot 2025-01-14 103734](https://github.com/user-attachments/assets/f6558c4d-585b-4e63-b787-1cc071cc0ad0)
+
+5. **Rule type**:  
+   - Select **Scheduled 🕒**.
+
+6. **Set rule frequency**:  
+   - Choose how often the query should run (e.g., **Every 5 minutes ⏱️**).
+
+7. **Set query results to look back**:  
+   - Define the time window for the query (e.g., **Last 1 hour ⏳**).
+
+---
+
+### **Step 2: Add the KQL Query**  
+In the **Set rule query** step, paste your KQL query to detect brute-force attempts:  
+
+```kql
+DeviceLogonEvents
+| where TimeGenerated >= ago(5h)
+| where ActionType == "LogonFailed"
+| summarize NumberOfFailures = count() by RemoteIP, ActionType, DeviceName
+| where NumberOfFailures >= 10s
+```
+![Screenshot 2025-01-14 111832](https://github.com/user-attachments/assets/b1164c0f-6022-444e-a409-43c1d4e9a579)
+
+- 🛠️ This query filters **sign-in logs** for failed login attempts and identifies unusual patterns.  
+- 💡 Adjust thresholds based on your environment (e.g., `> 5 failed attempts`).
+
+---
+
+### **Step 3: Define Incident Settings**  
+1. **Create incidents based on alert results**: Ensure this is selected ✅.  
+2. **Group alerts into incidents**:  
+   - Choose **"🧩 Grouped into a single incident if they share the same entities"** to avoid duplicates.
+
+---
+
+### **Step 4: Add Actions and Automation**  
+1. Configure **actions** to trigger when the rule is activated:  
+   - Add a **Playbook 🛠️** for automated responses, such as:  
+     - Blocking an IP 🚫.  
+     - Sending an email to your security team 📧.  
+     - Triggering a Teams or Slack notification 💬.  
+
+2. Example Playbook: A Logic App that sends an **email notification 📤** to the SOC.
+
+---
+
+### **Step 5: Review and Enable**  
+1. **Review everything** to ensure it’s correct:
+   - Name 🔖, description 📝, KQL query 📊, frequency ⏱️, and action settings ⚙️.  
+
+2. Click **"Create"** to enable the rule 🎉.  
+
+---
+
+### **Step 6: Validate Your Rule**  
+1. Test the rule by simulating a brute-force attack or using sample logs:
+   - Run a script that triggers **failed login attempts** (simulated safely) 🧑‍💻.
+   - Replay historical logs using KQL 📜.
+
+2. Verify that alerts are generated 🚨 and incidents are grouped as expected ✅.  
+---
+## 🚫 **Outcome**
+- **Attack Status:** Brute force attempts **unsuccessful**.  
+- **Recommendations:** Lockdown NSG rules for all VMs and enforce MFA on privileged accounts.
+
+🎉 **Status:** Incident resolved. No further action required.
+
+---
