@@ -71,23 +71,29 @@ This query filters for logon failures (`ActionType == "LogonFailed"`) within a 5
 
 ---
 
-- **Three Azure VMs** were targeted by brute force attempts from **three public IPs**:
-  
-  | **Remote IP**       | **Failed Attempts** | **Target Machine**    |
-  |---------------------|---------------------|-----------------------|
-  | `87.120.127.241`    | 116                 | `linux-agent-scan-sam`    |
-  | `194.0.234.44`     | 100                 | `bennyvirtual`    |
-  | `10.0.0.8`    | 22, 20                 | `windows-server,ryan-final-lab `     |
+### 🔍 Brute Force Activity Observed
 
-![Screenshot 2025-01-06 181511](https://github.com/user-attachments/assets/3134d542-b44d-4036-b2ce-1827bc7dda88)
+The following table summarizes repeated failed login attempts observed within the last 5 hours, indicating potential brute-force attack behavior against several Azure virtual machines:
+
+| **Remote IP**        | **Failed Attempts**                                | **Target Machine(s)**                             |
+|----------------------|----------------------------------------------------|---------------------------------------------------|
+| `59.3.82.127`        | 100 (`pkb-mde-test`), 68 (`lois-test-vm-md`)       | `pkb-mde-test`, `lois-test-vm-md`                 |
+| `52.234.251.139`     | 26 (`win10-stigs`), 23 (`us-east-pc5`)             | `win10-stigs`, `us-east-pc5`                      |
+| `103.215.77.53`      | 16                                                 | `win10-stigs`                                     |
+| `116.98.175.64`      | 15                                                 | `linux-target-1.p2zfvso05mlezjev3ck4vqd3kd.cx.internal.cloudapp.net` |
+| `223.27.84.67`       | 11                                                 | `cavada-cyber-pc`                                 |
+| `80.94.95.15`        | 20, 10                                             | `linux-target-1.p2zfvso05mlezjev3ck4vqd3kd.cx.internal.cloudapp.net` |
+
+
+![Screenshot 2025-01-06 181511](https://github.com/user-attachments/assets/68b6a810-93a7-4f80-8c0a-0bb386af5138)
 
 - KQL Query to detect failed logins:  
   ```kql
   DeviceLogonEvents
-  | where RemoteIP in ("87.120.127.241", "194.0.234.44", "10.0.0.8" )
+  | where RemoteIP in ("59.3.82.127","52.234.251.139","103.215.77.53","116.98.175.64","223.27.84.67","80.94.95.15")
   | where ActionType != "LogonFailed"
-  ```
 
+ ```
   **Result:** No successful logins from these IPs were detected.
 
 #### Analysis Steps:
