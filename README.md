@@ -19,7 +19,7 @@ The objective of this lab is to establish proactive monitoring within Microsoft 
 
 ---
 
-## 1. 🪰 Preparation (NIST IR Step 1)
+## 1. 🪰 Preparation 
 
 Ensure the following controls and logging mechanisms are in place:
 
@@ -30,7 +30,7 @@ Ensure the following controls and logging mechanisms are in place:
 
 ---
 
-## 2. 🔎 Detection and Analysis (NIST IR Step 2)
+## 2. 🔎 Detection and Analysis 
 
 ### 📊 KQL Detection Logic
 
