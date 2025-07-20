@@ -140,7 +140,7 @@ DeviceLogonEvents
 | where NumberOfFailures >= 10
 ```
 
-![Screenshot 2025-01-14 111832](https://github.com/user-attachments/assets/b1164c0f-6022-444e-a409-43c1d4e9a579)
+![Screenshot 2025-01-14 111832](https://github.com/user-attachments/assets/6c01438b-694b-4282-892e-37dff91763e7)
 
 ---
 
