@@ -38,10 +38,10 @@ In this stage, I defined a query to detect brute force attempts based on repeate
 
 ```kql
 DeviceLogonEvents
-| where ActionType == "LogonFailed"
 | where TimeGenerated >= ago(5h)
-| summarize NumberofFailures = count() by DeviceName, RemoteIP
-| where NumberofFailures >= 10
+| where ActionType == "LogonFailed"
+| summarize NumerofFailures = count() by RemoteIP, ActionType, DeviceName
+| where NumerofFailures >= 10
 ```
 
 This query filters for logon failures (`ActionType == "LogonFailed"`) within a 5-hour window. It then groups the results by `DeviceName` and `RemoteIP`, counting the number of failures. If 10 or more failures are observed from a single remote IP to a single host, this suggests potential brute force behavior.
